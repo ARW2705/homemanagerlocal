@@ -5,13 +5,13 @@ const path = require('path');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-mongoose.Promise = require('bludebird');
+mongoose.Promise = require('bluebird');
 const passport = require('passport');
 
 const mongoURL = process.env.MONGO_URL;
 const connect = mongoose.connect(mongoURL);
 
-const usersRouter = require('./routes/users');
+const usersRouter = require('./routes/user');
 const datetimeRouter = require('./routes/datetime');
 
 connect.then(() => {
@@ -30,7 +30,7 @@ app.use('/users', usersRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/datetime', dateTimeRouter);
+app.use('/datetime', datetimeRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

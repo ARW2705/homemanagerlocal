@@ -27,9 +27,6 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(passport.initialize());
 
 app.use('/users', usersRouter);
-
-app.use(express.static(path.join(__dirname, 'public')));
-
 app.use('/datetime', datetimeRouter);
 
 // catch 404 and forward to error handler

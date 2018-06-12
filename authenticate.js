@@ -23,7 +23,7 @@ opts.secretOrKey = TOKEN_KEY;
 
 exports.jwtPassport = passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
   console.log("JWT payload", jwt_payload);
-  User.findOne({_id: jwt_payload.id}, (err, user) => {
+  User.findOne({_id: jwt_payload._id}, (err, user) => {
     if (err) {
       return done(err, false);
     } else if (user) {

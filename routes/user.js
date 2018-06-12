@@ -36,34 +36,16 @@ userRouter.route('/login')
         res.setHeader('Content-Type', 'application/json');
         res.json({success: true, token: token, status: 'Successfully logged in'});
       }
-    })(req, res, next);
-  });
-
-userRouter.route('/signup')
-  .post((req, res, next) => {
-    User.register(new User({username: req.body.username}),
-      req.body.password,
-      (err, user) => {
+      req.logIn(user, err => {
         if (err) {
-          res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json');
-          res.json({err: err});
-        } else {
-          user.save((err, user) => {
-            if (err) {
-              res.statusCode = 500;
-              res.setHeader('Content-Type', 'application/json');
-              res.json({err: err});
-              return;
-            }
-            passport.authenticate('local')(req, res, () => {
-              res.statusCode = 200;
-              res.setHeader('Content-Type', 'application/json');
-              res.json({success: true, status: 'Registration Successful'});
-            });
-          });
+          return next(err);
         }
+        const token = authenticate.getToken({_id: req.user._id});
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json({success: true, token: token, status: 'Successfully logged in'});
       });
+    })(req, res, next);
   });
 
 module.exports = userRouter;

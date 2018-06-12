@@ -3,22 +3,17 @@
 const app = require('../app');
 const debug = require('debug')('homemanagerlocalserver:server');
 const http = require('http');
-const socketioJwt = require('socketio-jwt');
 const LocalStorage = require('node-localstorage').LocalStorage;
-const localStorage = new LocalStorage('./cache');
+const localStorage = new LocalStorage('./local-storage');
 const client = require('../client');
 
-const TOKEN_KEY = process.env.TOKEN_KEY;
-
 const port = normalizePort(process.env.PORT || '3000');
-const host = process.env.HOST || '0.0.0.0';
-app.set('host', host);
 app.set('port', port);
-app.set('wsPort', port+575);
+app.set('wsPort', port+574);
 
 const server = http.createServer(app);
-server.listen(app.get('port'), app.get('host'), () => {
-  console.log(`http server listening on ${app.get('host')}:${app.get('port')}`);
+server.listen(app.get('port'), () => {
+  console.log(`http server listening on port ${app.get('port')}`);
 });
 server.on('error', onError);
 server.on('listening', onListening);
@@ -26,52 +21,32 @@ server.on('listening', onListening);
 const wsServer = http.createServer(app);
 const io = require('socket.io')(wsServer);
 
-io.set('authorization', socketioJwt.authorize({
-  secret: TOKEN_KEY,
-  handshake: true
-}));
-
 const clientToken = client.getClientToken();
-let wssClient;
 clientToken
   .then(res => {
-    console.log(res.data);
-    let token = JSON.parse(res.data).token;
-    if (token) {
-      localStorage.setItem('token', token);
-      let clientSocket = client.getSocket(token);
-      clientSocket
-        .then(socket => {
-          // require('../routes/climateSocket')(io, wssClient);
-          const climateSocket = require('../routes/climateSocket');
-          climateSocket(io, wssClient);
-          // require('../routes/garageDoorSocket')(io, wssClient);
-
-          wsServer.listen(app.get('wsPort'), () => {
-            console.log(`ws server listening on ${app.get('host')}:${app.get('wsPort')}`);
-          });
-        })
-        .catch(err => {
-          console.log('Failed to connect to socket');
-        });
+    if (!res.success || !res.token) {
+      console.error('Error connecting to WSS');
+      return;
     }
+    console.log('Logged into cloud server');
+    localStorage.setItem('token', res.token);
+    clientSocket = client.getSocket(res.token);
+    clientSocket
+      .then(socket => {
+
+        require('../routes/climateSocket')(io, socket);
+
+        wsServer.listen(app.get('wsPort'), () => {
+          console.log(`ws server listening on port ${app.get('wsPort')}`);
+        });
+      })
+      .catch(err => {
+        console.log('Failed to connect to socket', err);
+      });
   })
   .catch(err => {
     console.log(err);
   });
-
-// const wssClient = require('../client').getSocket();
-
-// const storedToken = localStorage.getItem('token');
-// const socket = socketClient(`${process.env.HOSTNAME}`, {query: {token: storedToken}});
-// return socket;
-
-// require('../routes/climateSocket')(io, wssClient);
-// // require('../routes/garageDoorSocket')(io, wssClient);
-//
-// wsServer.listen(app.get('wsPort'), () => {
-//   console.log(`ws server listening on ${app.get('host')}:${app.get('wsPort')}`);
-// });
 
 /**
  * Normalize a port into a number, string, or false.

@@ -8,7 +8,12 @@ const socketProxy = (io, client) => {
 
   io.on('connection', socket => {
     console.log('Thermostat connected to local server');
-    client.emit('thermostat-connected', {connectedAt: new Date()});
+    client.emit('thermostat-connection', {connectedAt: new Date()});
+
+    socket.on('heartbeat', data => {
+      console.log('Thermostat heartbeat');
+      client.emit('thermostat-connection', {connectedAt: new Date()});
+    });
 
     socket.on('ping-initial-data', data => {
       console.log('Pinging server for initial climate and program data');
@@ -21,7 +26,7 @@ const socketProxy = (io, client) => {
         tstatId = socket.id;
         tstatAuthed = true;
         socket.emit('verified', {});
-        client.emit('thermostat-verified', {connectedAt: new Date()});
+        client.emit('thermostat-verified', {verifiedAt: new Date()});
       }
     });
 
@@ -32,9 +37,9 @@ const socketProxy = (io, client) => {
         const err = "Error: Not Authenticated";
         socket.emit('error', {error: err});
       } else {
-      // pass data to wss client
-      client.emit('post-current-climate-data', data);
-      socket.emit('post-current-climate-data', {});
+        // pass data to wss client
+        client.emit('response-post-current-climate-data', data);
+        socket.emit('post-current-climate-data', {});
       }
     });
 
@@ -45,22 +50,28 @@ const socketProxy = (io, client) => {
         const err = "Error: Not Authenticated";
         socket.emit('error', {error: err});
       } else {
-      // pass data to wss client
-      client.emit('patch-current-climate-data', data);
-      socket.emit('patch-current-climate-data', {});
+        // pass data to wss client
+        client.emit('response-patch-current-climate-data', data);
+        socket.emit('patch-current-climate-data', {});
       }
+    });
+
+    // TODO separate select program response
+    socket.on('response-selected-program', data => {
+      console.log('thermostat select program response', data);
+      client.emit('response-select-program', data);
     });
 
     // thermostat disconnected from websocket
     socket.on('disconnect', () => {
       console.log('Thermostat disconnected');
       // pass notification to wss client that thermostat disconnected
-      client.emit('thermostat-disconnected', {lastConnectedAt: new Date()});
+      client.emit('thermostat-disconnection', {lastConnectedAt: new Date()});
     });
   });
 
   /* Pass message from wss client to local ws socket */
-  client.emit('local-node-connection', {data: new Date().toString()});
+  client.emit('local-node-connection', {nodeConnectedAt: new Date()});
 
   client.on('ping-thermostat', () => {
     console.log('pinging thermostat for client app');
@@ -68,7 +79,7 @@ const socketProxy = (io, client) => {
   });
 
   client.on('ping-local-node', _ => {
-    client.emit('local-node-connection', {data: new Date().toString()});
+    client.emit('local-node-connection', {nodeConnectedAt: new Date()});
   });
 
   client.on('initial-climate-data', climate => {
@@ -82,17 +93,17 @@ const socketProxy = (io, client) => {
     else io.emit('initial-program-data', program[0]);
   });
 
-  client.on('updated-climate-data', update => {
+  client.on('local-request-patch-current-climate-data', update => {
     console.log('update received', update);
-    io.emit('updated-climate-data', update);
+    io.emit('echo-request-patch-current-climate-data', update);
   });
 
-  client.on('selected-program', program => {
+  client.on('local-select-program', program => {
     console.log('program selected', program);
     io.emit('selected-program', program);
   });
 
-  client.on('delete-specified-program', _ => {
+  client.on('echo-delete-climate-program', _ => {
     console.log('program was deleted');
     io.emit('selected-program', {data: null});
   });

@@ -13,6 +13,7 @@ exports.local = passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+// Create a new json webtoken
 exports.getToken = user => {
   return jwt.sign(user, TOKEN_KEY, {expiresIn: '1d'});
 };
@@ -21,6 +22,7 @@ const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = TOKEN_KEY;
 
+// Verify json webtoken
 exports.jwtPassport = passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
   console.log("JWT payload", jwt_payload);
   User.findOne({_id: jwt_payload._id}, (err, user) => {

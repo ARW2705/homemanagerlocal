@@ -14,6 +14,7 @@ const connect = mongoose.connect(mongoURL);
 const usersRouter = require('./routes/user');
 const datetimeRouter = require('./routes/datetime');
 
+// Connect to local db for IOT logins
 connect.then(() => {
   const db = mongoose.connection;
   console.log('Database-Server connection established');

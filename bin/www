@@ -19,7 +19,7 @@ server.on('error', onError);
 server.on('listening', onListening);
 
 const wsServer = http.createServer(app);
-const io = require('socket.io')(wsServer);
+const io = require('socket.io')(wsServer, {'pingInterval': 25000, 'pingTimeout': 5000});
 
 const clientToken = client.getClientToken();
 clientToken
@@ -30,7 +30,7 @@ clientToken
     }
     console.log('Logged into cloud server');
     localStorage.setItem('token', res.token);
-    clientSocket = client.getSocket(res.token);
+    const clientSocket = client.getSocket(res.token);
     clientSocket
       .then(socket => {
 
@@ -45,7 +45,7 @@ clientToken
       });
   })
   .catch(err => {
-    console.log(err);
+    console.log('An error occurred connecting to cloud', err.statusCode, err.message);
   });
 
 /**

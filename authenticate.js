@@ -15,7 +15,7 @@ passport.deserializeUser(User.deserializeUser());
 
 // Create a new json webtoken
 exports.getToken = user => {
-  return jwt.sign(user, TOKEN_KEY, {expiresIn: '1d'});
+  return jwt.sign(user, TOKEN_KEY, {expiresIn: '30d'});
 };
 
 const opts = {};

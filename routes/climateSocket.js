@@ -16,9 +16,9 @@ let tstatAuthed = false;
 const socketProxy = (io, cloudClientSocket) => {
 
   io.on('connection', socket => {
-    console.log('Thermostat connected to local server');
+    console.log('Local device connected to local server');
     // cloudClientSocket.emit('thermostat-connection', {connectedAt: new Date()});
-    cloudClientSocket.emit('response-update-thermostat-connection', {connectedAt: new Date()});
+    // cloudClientSocket.emit('response-update-thermostat-connection', {connectedAt: new Date()});
 
     // keep alive message, emit with timestamp for cloud records
     socket.on('heartbeat', data => {

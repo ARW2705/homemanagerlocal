@@ -1,12 +1,9 @@
 'use strict';
 
-const http = require('http');
-const https = require('https');
 const rp = require('request-promise');
 const socketClient = require('socket.io-client');
 const LocalStorage = require('node-localstorage').LocalStorage;
 const localStorage = new LocalStorage('./local-storage');
-
 
 exports.getClientToken = () => {
   const postData = {

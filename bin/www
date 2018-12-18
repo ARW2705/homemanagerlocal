@@ -36,6 +36,8 @@ clientToken
 
         require('../routes/climateSocket')(io, socket);
 
+        require('../routes/securitySysSocket')(io, socket);
+
         wsServer.listen(app.get('wsPort'), () => {
           console.log(`ws server listening on port ${app.get('wsPort')}`);
         });
